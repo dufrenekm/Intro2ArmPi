@@ -117,9 +117,9 @@ class Color_Track:
         
         # Start by getting a frame
         frame = self.get_frame()
-        if frame is not None:
+        if frame is None:
             return
-        print(frame.shape)
+        # print(frame.shape)
         logging.debug("Got a valid frame.")
         # Pre-process with resizing and blur
         frame = self.pre_process_image(frame)
