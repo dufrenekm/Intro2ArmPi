@@ -4,6 +4,7 @@ sys.path.append('/home/pi/ArmPi/')
 import Camera
 import cv2
 import numpy as np
+from time import sleep
 
 class Color_Track:
     def __init__(self) -> None:
@@ -90,5 +91,7 @@ class Color_Track:
     
 if __name__ == '__main__':
     ct = Color_Track()
-    ct.run()
+    for i in range(10):
+        ct.run()
+        sleep(.1)
     pass
