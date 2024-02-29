@@ -109,6 +109,7 @@ class Color_Track:
         
         area_max = 0
         areaMaxContour = 0
+        color = 'red'
         for i in color_range:
             if i in self.target:
                 detect_color = i
@@ -116,9 +117,13 @@ class Color_Track:
                 opened = cv2.morphologyEx(frame_mask, cv2.MORPH_OPEN, np.ones((6, 6), np.uint8))  # Open operation
                 closed = cv2.morphologyEx(opened, cv2.MORPH_CLOSE, np.ones((6, 6), np.uint8))  # Close operation
                 contours = cv2.findContours(closed, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)[-2]  # Find the contour
-                areaMaxContour, area_max = self.getAreaMaxContour(contours)  # Find the largest contour
+                new_areaMaxContour, new_area_max = self.getAreaMaxContour(contours)  # Find the largest contour
+                if new_area_max > area_max:
+                    area_max = new_area_max
+                    areaMaxContour = new_areaMaxContour
+                    color = detect_color
         logging.debug(f"Area max: {area_max}")
-        return areaMaxContour, area_max, detect_color
+        return areaMaxContour, area_max, color
         
         
     def process_contour(self, areaMaxContour, area_max, color, img):
