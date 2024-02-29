@@ -171,7 +171,7 @@ class Color_Track:
 if __name__ == '__main__':
     ct = Color_Track()
     try:
-        ct.target = ('red',)
+        ct.target = ('red','blue','green')
         for i in range(100000):
             ct.run()
             sleep(.1)
