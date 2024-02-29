@@ -80,6 +80,8 @@ class Color_Track:
         
         # Start by getting a frame
         frame = self.get_frame()
+        if not frame:
+            return
         # Pre-process with resizing and blur
         frame = self.pre_process_image(frame)
         
