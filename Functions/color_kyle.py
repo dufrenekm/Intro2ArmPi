@@ -31,8 +31,8 @@ class Color_Track:
             'green': (0, 255, 0),
             'black': (0, 0, 0),
             'white': (255, 255, 255)}
+        self.last_x, self.last_y = 0, 0
         
-        pass
     
     def get_frame(self):
         """Gets a frame
@@ -139,9 +139,10 @@ class Color_Track:
         cv2.drawContours(img, [box], -1, self.range_rgb[color], 2)
         cv2.putText(img, '(' + str(world_x) + ',' + str(world_y) + ')', (min(box[0, 0], box[2, 0]), box[2, 1] - 10),
                 cv2.FONT_HERSHEY_SIMPLEX, 0.5, self.range_rgb[color], 1) #draw center point
-        distance = math.sqrt(pow(world_x - last_x, 2) + pow(world_y - last_y, 2)) #Compare the last coordinates to determine whether to move
-        last_x, last_y = world_x, world_y
+        distance = math.sqrt(pow(world_x - self.last_x, 2) + pow(world_y - self.last_y, 2)) #Compare the last coordinates to determine whether to move
+        self.last_x, self.last_y = world_x, world_y
         track = True
+        return img
     
     
     def run(self):
@@ -159,8 +160,9 @@ class Color_Track:
         # Get contours 
         shape, area, color = self.get_contours(frame)
         # Process contours
-        self.process_contour(shape, area, color, orig_frame)
-        
+        new_img = self.process_contour(shape, area, color, orig_frame)
+        cv2.imshow('Frame', new_img)
+        key = cv2.waitKey(1)
         
         
         
@@ -168,8 +170,12 @@ class Color_Track:
     
 if __name__ == '__main__':
     ct = Color_Track()
-    ct.target = ('red',)
-    for i in range(10):
-        ct.run()
-        sleep(.1)
-    pass
+    try:
+        ct.target = ('red',)
+        for i in range(100000):
+            ct.run()
+            sleep(.1)
+    except:
+        ct.my_camera.camera_close()
+        cv2.destroyAllWindows()
+    
