@@ -117,7 +117,7 @@ class Color_Track:
                 closed = cv2.morphologyEx(opened, cv2.MORPH_CLOSE, np.ones((6, 6), np.uint8))  # Close operation
                 contours = cv2.findContours(closed, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)[-2]  # Find the contour
                 areaMaxContour, area_max = self.getAreaMaxContour(contours)  # Find the largest contour
-        logging.debug(f"Area max contour: {areaMaxContour}, Area max: {area_max}")
+        logging.debug(f"Area max: {area_max}")
         return areaMaxContour, area_max, detect_color
         
         
@@ -135,7 +135,7 @@ class Color_Track:
         img_centerx, img_centery = getCenter(rect, roi, self.size, square_length)  # Get the center coordinates of the wooden block
         world_x, world_y = convertCoordinate(img_centerx, img_centery, self.size) #Convert to real world coordinates
         
-        
+        logging.debug(f"Marking {color}.")
         cv2.drawContours(img, [box], -1, self.range_rgb[color], 2)
         cv2.putText(img, '(' + str(world_x) + ',' + str(world_y) + ')', (min(box[0, 0], box[2, 0]), box[2, 1] - 10),
                 cv2.FONT_HERSHEY_SIMPLEX, 0.5, self.range_rgb[color], 1) #draw center point
