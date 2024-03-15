@@ -16,6 +16,10 @@ import logging
 import threading
 import HiwonderSDK.Board as Board
 from ArmIK.ArmMoveIK import ArmIK
+import math
+from py_bullet_arm_ik.pybullet_arm import PyBulletIK
+
+
 
 logging_format = "%(asctime)s: %(message)s"
 # logging.basicConfig(format=logging_format, level=logging.INFO,datefmt="%H:%M:%S")
@@ -363,6 +367,7 @@ if __name__ == '__main__':
     #     ct.my_camera.camera_close()
     #     cv2.destroyAllWindows()
     AK = ArmIK()
+    IK = PyBulletIK()
     servo1 = 500
     Board.setBusServoPulse(1, servo1 - 50, 300)
     Board.setBusServoPulse(2, 500, 500)
@@ -381,17 +386,35 @@ if __name__ == '__main__':
     # Start pos approx angle
     #servos = AK.transformAngelAdaptArm(-90,104,160,-270)
 
-    servos = AK.transformAngelAdaptArm(0,0,90,-270)
-    print("Servo vals")
-    print(servos)
-    AK.servosMove((servos["servo3"], servos["servo4"], servos["servo5"], servos["servo6"]), None)
 
-    sleep(3)
+    # Goal poses 
+    goals = [[.2, 0, .2],
+    [.1, .2, .1],
+    [.15, .15, .2]]
+
+    for goal in goals:
+
+        angles = IK.compute_ik(goal)
+        print(angles)
+        servos = AK.transform_pybullet(angles[-2], angles[-3], angles[-4], angles[-5])
+        AK.servosMove((servos["servo3"], servos["servo4"], servos["servo5"], servos["servo6"]), None)
+        sleep(5)
+
+    # for i in range(100):
+    #     print(IK.compute_ik([.2, 0, .1]))
+    # servos = AK.transform_pybullet(.477,.95,.5,.4)
+    # print("Servo vals")
+    # print(servos)
+    # AK.servosMove((servos["servo3"], servos["servo4"], servos["servo5"], servos["servo6"]), None)
+
+    # sleep(3)
     # AK.set_servo_pulse(3, 139, 0)
     # AK.set_servo_pulse(4, pwm_4, 0)
-    AK.reset_servo(3)
-    AK.reset_servo(4)
-    AK.reset_servo(5)
-    AK.reset_servo(6)
-    AK.reset_servo(2)
-    AK.reset_servo(1)
+
+
+    # AK.reset_servo(3)
+    # AK.reset_servo(4)
+    # AK.reset_servo(5)
+    # AK.reset_servo(6)
+    # AK.reset_servo(2)
+    # AK.reset_servo(1)

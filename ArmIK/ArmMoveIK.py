@@ -10,6 +10,7 @@ from ArmIK.InverseKinematics import *
 from ArmIK.Transform import getAngle
 from mpl_toolkits.mplot3d import Axes3D
 from HiwonderSDK.Board import setBusServoPulse, getBusServoPulse, getPWMServoAngle, unloadBusServo
+import math
 
 #机械臂根据逆运动学算出的角度进行移动
 ik = IK('arm')
@@ -57,7 +58,15 @@ class ArmIK:
         angle_6 = pwm_6/self.servo6Param-(self.servo6Range[3] - self.servo6Range[2])/2 -90 -180
         return (angle_3, angle_4, angle_5, angle_6)
 
+    def transform_pybullet(self, theta3, theta4, theta5, theta6):
+        theta3 = math.degrees(-theta3)
+        theta4 = math.degrees(theta4)
+        theta5 = math.degrees(-theta5) + 90
+        theta6 = math.degrees(theta6) - 270
+        return self.transformAngelAdaptArm(theta3, theta4, theta5, theta6)
+
     def transformAngelAdaptArm(self, theta3, theta4, theta5, theta6):
+        
         #将逆运动学算出的角度转换为舵机对应的脉宽值
         servo3 = int(round(theta3 * self.servo3Param + (self.servo3Range[1] + self.servo3Range[0])/2))
         if servo3 > self.servo3Range[1] or servo3 < self.servo3Range[0] + 60:
