@@ -366,25 +366,15 @@ if __name__ == '__main__':
     #     logger.error(f"Exception: {e}.")
     #     ct.my_camera.camera_close()
     #     cv2.destroyAllWindows()
+
+    # Move to home position
     AK = ArmIK()
     IK = PyBulletIK()
     servo1 = 500
     Board.setBusServoPulse(1, servo1 - 50, 300)
     Board.setBusServoPulse(2, 500, 500)
     AK.setPitchRangeMoving((0, 10, 10), -30, -30, -90, 1500) 
-    # print(Board.getPWMServoAngle(1))
     sleep(4)
-    pwm_3, pwm_4, pwm_5, pwm_6 = AK.cur_pulse
-    pwms = (pwm_3, pwm_4, pwm_5, pwm_6)
-    print(pwms)
-    print(AK.pwm_to_angle((pwms)))
-
-    print("here")
-    print(AK.cur_pulse)
-    # sleep(1)
-
-    # Start pos approx angle
-    #servos = AK.transformAngelAdaptArm(-90,104,160,-270)
 
 
     # Goal poses 
@@ -392,29 +382,15 @@ if __name__ == '__main__':
     [.1, .2, .1],
     [.15, .15, .2]]
 
-    for goal in goals:
+    # Current angles 0, 0, 0, 0 directly vertical
 
-        angles = IK.compute_ik(goal)
-        print(angles)
-        servos = AK.transform_pybullet(angles[-2], angles[-3], angles[-4], angles[-5])
-        AK.servosMove((servos["servo3"], servos["servo4"], servos["servo5"], servos["servo6"]), None)
-        sleep(5)
-
-    # for i in range(100):
-    #     print(IK.compute_ik([.2, 0, .1]))
-    # servos = AK.transform_pybullet(.477,.95,.5,.4)
-    # print("Servo vals")
-    # print(servos)
-    # AK.servosMove((servos["servo3"], servos["servo4"], servos["servo5"], servos["servo6"]), None)
-
-    # sleep(3)
-    # AK.set_servo_pulse(3, 139, 0)
-    # AK.set_servo_pulse(4, pwm_4, 0)
-
-
-    # AK.reset_servo(3)
-    # AK.reset_servo(4)
-    # AK.reset_servo(5)
-    # AK.reset_servo(6)
-    # AK.reset_servo(2)
-    # AK.reset_servo(1)
+    # Computes PyBullet IK
+    angles = IK.compute_ik(goals[0])
+    # Converts PyBullet angles [base, link_1, link_2, link_3, link_4, link_5] to servo PWMs [link_4, link_3, link_2, link_1]
+    servos = AK.transform_pybullet(angles)
+    # Moves servos
+    AK.servosMove((servos["servo3"], servos["servo4"], servos["servo5"], servos["servo6"]), None)
+    sleep(5)
+    
+    # Disables all servos
+    AK.reset_servos()

@@ -45,20 +45,21 @@ class ArmIK:
         self.servo5Param = (self.servo5Range[1] - self.servo5Range[0]) / (self.servo5Range[3] - self.servo5Range[2])
         self.servo6Param = (self.servo6Range[1] - self.servo6Range[0]) / (self.servo6Range[3] - self.servo6Range[2])
    
-    def reset_servo(self, id):
-        unloadBusServo(id)
+    def reset_servos(self):
+        """Disables all servos"""
+        for i in range(6):
+            unloadBusServo(i+1)
 
     def pwm_to_angle(self, pwms):
         pwm_3, pwm_4, pwm_5, pwm_6 = pwms[0], pwms[1], pwms[2], pwms[3]
         angle_3 = (pwm_3 - (self.servo3Range[1] + self.servo3Range[0])/2)/self.servo3Param 
         angle_4 = (pwm_4 - (self.servo4Range[1] + self.servo4Range[0])/2)/self.servo4Param 
         angle_5 = ((pwm_5 - (self.servo5Range[1] + self.servo5Range[0])/2)/self.servo5Param + 90)
-        #  - (90.0 - theta5) * 
-        # (pwm_5 - (self.servo5Range[1] + self.servo5Range[0])/2)/self.servo5Param
         angle_6 = pwm_6/self.servo6Param-(self.servo6Range[3] - self.servo6Range[2])/2 -90 -180
         return (angle_3, angle_4, angle_5, angle_6)
 
-    def transform_pybullet(self, theta3, theta4, theta5, theta6):
+    def transform_pybullet(self, angles):
+        theta3, theta4, theta5, theta6 = angles[-2], angles[-3], angles[-4], angles[-5]
         theta3 = math.degrees(-theta3)
         theta4 = math.degrees(theta4)
         theta5 = math.degrees(-theta5) + 90
