@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 from ArmIK.InverseKinematics import *
 from ArmIK.Transform import getAngle
 from mpl_toolkits.mplot3d import Axes3D
-from HiwonderSDK.Board import setBusServoPulse, getBusServoPulse
+from HiwonderSDK.Board import setBusServoPulse, getBusServoPulse, getPWMServoAngle, unloadBusServo
 
 #机械臂根据逆运动学算出的角度进行移动
 ik = IK('arm')
@@ -23,9 +23,15 @@ class ArmIK:
     servo4Range = (0, 1000, 0, 240)
     servo5Range = (0, 1000, 0, 240)
     servo6Range = (0, 1000, 0, 240)
+    
 
     def __init__(self):
+        self.cur_pulse = [139, 934, 795, 500]
         self.setServoRange()
+
+    def set_servo_pulse(self, id, pulse, time):
+        setBusServoPulse(id, pulse, time)
+
 
     def setServoRange(self, servo3_Range=servo3Range, servo4_Range=servo4Range, servo5_Range=servo5Range, servo6_Range=servo6Range):
         # 适配不同的舵机
@@ -37,6 +43,19 @@ class ArmIK:
         self.servo4Param = (self.servo4Range[1] - self.servo4Range[0]) / (self.servo4Range[3] - self.servo4Range[2])
         self.servo5Param = (self.servo5Range[1] - self.servo5Range[0]) / (self.servo5Range[3] - self.servo5Range[2])
         self.servo6Param = (self.servo6Range[1] - self.servo6Range[0]) / (self.servo6Range[3] - self.servo6Range[2])
+   
+    def reset_servo(self, id):
+        unloadBusServo(id)
+
+    def pwm_to_angle(self, pwms):
+        pwm_3, pwm_4, pwm_5, pwm_6 = pwms[0], pwms[1], pwms[2], pwms[3]
+        angle_3 = (pwm_3 - (self.servo3Range[1] + self.servo3Range[0])/2)/self.servo3Param 
+        angle_4 = (pwm_4 - (self.servo4Range[1] + self.servo4Range[0])/2)/self.servo4Param 
+        angle_5 = ((pwm_5 - (self.servo5Range[1] + self.servo5Range[0])/2)/self.servo5Param + 90)
+        #  - (90.0 - theta5) * 
+        # (pwm_5 - (self.servo5Range[1] + self.servo5Range[0])/2)/self.servo5Param
+        angle_6 = pwm_6/self.servo6Param-(self.servo6Range[3] - self.servo6Range[2])/2 -90 -180
+        return (angle_3, angle_4, angle_5, angle_6)
 
     def transformAngelAdaptArm(self, theta3, theta4, theta5, theta6):
         #将逆运动学算出的角度转换为舵机对应的脉宽值
@@ -75,6 +94,7 @@ class ArmIK:
                 if d > max_d:
                     max_d = d
             movetime = int(max_d*4)
+        self.cur_pulse = [servos[0], servos[1], servos[2],servos[3]]
         setBusServoPulse(3, servos[0], movetime)
         setBusServoPulse(4, servos[1], movetime)
         setBusServoPulse(5, servos[2], movetime)
