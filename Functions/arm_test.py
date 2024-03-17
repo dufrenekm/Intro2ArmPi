@@ -1,15 +1,15 @@
 
 import sys
-sys.path.append('/home/pi/ArmPi/')
+sys.path.append('/home/roosh/Intro2ArmPi/')
 import Camera
 from copy import deepcopy
 import cv2
 import numpy as np
 from time import sleep
 from LABConfig import color_range
-sys.path.append('/home/pi/ArmPi/CameraCalibration/')
+sys.path.append('/home/roosh/Intro2ArmPi/CameraCalibration/')
 from CalibrationConfig import square_length
-sys.path.append('/home/pi/ArmPi/ArmIK/')
+sys.path.append('/home/roosh/Intro2ArmPi/ArmIK/')
 from Transform import getROI, getCenter, convertCoordinate, getAngle
 import math
 import logging
@@ -18,7 +18,7 @@ import HiwonderSDK.Board as Board
 from ArmIK.ArmMoveIK import ArmIK
 import math
 from py_bullet_arm_ik.pybullet_arm import PyBulletIK
-
+from transforms3d.euler import euler2quat, quat2euler
 
 
 logging_format = "%(asctime)s: %(message)s"
@@ -373,24 +373,49 @@ if __name__ == '__main__':
     servo1 = 500
     Board.setBusServoPulse(1, servo1 - 50, 300)
     Board.setBusServoPulse(2, 500, 500)
-    AK.setPitchRangeMoving((0, 10, 10), -30, -30, -90, 1500) 
+    AK.servosMove((500, 500, 500, 500) , None)
+    IK.move_arm() # in base link, straight out poistion is [([0.0, 0.0, 0.3], euler2quat(0, 0, 3.14).tolist())]
     sleep(4)
 
-
-    # Goal poses 
-    goals = [[.2, 0, .2],
-    [.1, .2, .1],
-    [.15, .15, .2]]
+    [.1, .0, -0.2, .0, .0, .0, .1],
+    [.15, .0, -0.2, .0, .0, .0, .1]
+    goals = [([0.0, 0.0, 0.3], euler2quat(0, 0, 3.14).tolist()), 
+             [0.1, 0.1, 0.05]
+            ]
 
     # Current angles 0, 0, 0, 0 directly vertical
 
-    # Computes PyBullet IK
-    angles = IK.compute_ik(goals[0])
-    # Converts PyBullet angles [base, link_1, link_2, link_3, link_4, link_5] to servo PWMs [link_4, link_3, link_2, link_1]
-    servos = AK.transform_pybullet(angles)
-    # Moves servos
-    AK.servosMove((servos["servo3"], servos["servo4"], servos["servo5"], servos["servo6"]), None)
-    sleep(5)
+    for target in goals:
+        # Computes PyBullet IK
+        if len(target) == 2:
+            angles = IK.compute_ik_pair(target[0], target[1])
+        elif len(target) == 7 or len(target) == 3:
+            angles = IK.compute_ik(target)
+        else:
+            print("Incorrect goal type")
+            break
+        
+        if angles == False:
+            print("Can't solve!")
+            break
+        IK.move_arm(angles)
+        # Converts PyBullet angles [base, link_1, link_2, link_3, link_4, link_5] to servo PWMs [link_4, link_3, link_2, link_1]
+        servos = AK.transform_pybullet(angles)
+        if servos == False:
+            print("Invalid servo setting")
+            break
+        # Open gripper and move servos
+        Board.setBusServoPulse(1, servo1 - 280, 500) 
+        sleep(0.8)
+        AK.servosMove((servos["servo3"], servos["servo4"], servos["servo5"], servos["servo6"]), None)
+        sleep(5)
     
+    Board.setBusServoPulse(1, servo1 + 280, 500)
+    sleep(0.8)
+    
+    servo1 = 500
+    Board.setBusServoPulse(2, 500, 500)
+    AK.setPitchRangeMoving((0, 10, 10), -30, -30, -90, 1500)
+    sleep(4)
     # Disables all servos
     AK.reset_servos()
