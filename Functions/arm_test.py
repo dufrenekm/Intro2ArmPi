@@ -379,22 +379,34 @@ if __name__ == '__main__':
 
     [.1, .0, -0.2, .0, .0, .0, .1],
     [.15, .0, -0.2, .0, .0, .0, .1]
-    goals = [([0.0, 0.0, 0.3], euler2quat(0, 0, 3.14).tolist()), 
-             [0.1, 0.1, 0.05]
+    goals = [([0.0, 0.0, 0.3], euler2quat(0, 0, 3.1412).tolist()),
+              "gripper_open",
+             ([0.15, 0.0, 0.1], euler2quat(0, math.radians(30), 0).tolist()),
+              "gripper_close",
+              [0.15, 0.0, 0.2],
+             ([0.08, 0.13, 0.1]),
+               "gripper_open",
             ]
 
     # Current angles 0, 0, 0, 0 directly vertical
 
     for target in goals:
+        if target == "gripper_close":
+            Board.setBusServoPulse(1, servo1 + 300, 500)
+            sleep(0.8)
+            continue
+        elif target == "gripper_open":
+            Board.setBusServoPulse(1, servo1 - 280, 500)
+            sleep(0.8)
+            continue
         # Computes PyBullet IK
-        if len(target) == 2:
+        elif len(target) == 2:
             angles = IK.compute_ik_pair(target[0], target[1])
         elif len(target) == 7 or len(target) == 3:
             angles = IK.compute_ik(target)
         else:
             print("Incorrect goal type")
             break
-        
         if angles == False:
             print("Can't solve!")
             break
@@ -404,16 +416,11 @@ if __name__ == '__main__':
         if servos == False:
             print("Invalid servo setting")
             break
-        # Open gripper and move servos
-        Board.setBusServoPulse(1, servo1 - 280, 500) 
-        sleep(0.8)
         AK.servosMove((servos["servo3"], servos["servo4"], servos["servo5"], servos["servo6"]), None)
-        sleep(5)
+        sleep(2.0)
     
-    Board.setBusServoPulse(1, servo1 + 280, 500)
-    sleep(0.8)
-    
-    servo1 = 500
+    # Board.setBusServoPulse(1, servo1 + 280, 500)
+    # sleep(0.8)
     Board.setBusServoPulse(2, 500, 500)
     AK.setPitchRangeMoving((0, 10, 10), -30, -30, -90, 1500)
     sleep(4)
