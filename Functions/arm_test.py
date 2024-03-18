@@ -10,7 +10,7 @@ from LABConfig import color_range
 sys.path.append('/home/roosh/Intro2ArmPi/CameraCalibration/')
 from CalibrationConfig import square_length
 sys.path.append('/home/roosh/Intro2ArmPi/ArmIK/')
-from Transform import getROI, getCenter, convertCoordinate, getAngle
+from Transform import getROI, getCenter, convertCoordinate, getAngle, original_to_urdf, urdf_to_original
 import math
 import logging
 import threading
@@ -326,7 +326,7 @@ class MoveArm():
         Board.setBuzzer(0)
         
 if __name__ == '__main__':
-    # ma = MoveArm()
+    ma = MoveArm()
     # ct = ColorTrack()
     
     # # Get user input for stacking or sorting
@@ -379,13 +379,16 @@ if __name__ == '__main__':
 
     [.1, .0, -0.2, .0, .0, .0, .1],
     [.15, .0, -0.2, .0, .0, .0, .1]
-    goals = [([0.0, 0.0, 0.3], euler2quat(0, 0, 3.1412).tolist()),
+    goals = [
+             original_to_urdf((0, 10, 10)),
               "gripper_open",
-             ([0.15, 0.0, 0.1], euler2quat(0, math.radians(30), 0).tolist()),
+             (original_to_urdf((0, 20, 3)), euler2quat(0, math.radians(90), 0).tolist()),
               "gripper_close",
-              [0.15, 0.0, 0.2],
-             ([0.08, 0.13, 0.1]),
-               "gripper_open",
+             (original_to_urdf((0, 20, 8)), euler2quat(0, math.radians(90), 0).tolist()),
+              "gripper_open",
+             (original_to_urdf((0, 20, 3)), euler2quat(0, math.radians(90), 0).tolist()),
+            #   original_to_urdf(ma.coordinate['red']),
+            #   "gripper_open",
             ]
 
     # Current angles 0, 0, 0, 0 directly vertical
@@ -421,8 +424,16 @@ if __name__ == '__main__':
     
     # Board.setBusServoPulse(1, servo1 + 280, 500)
     # sleep(0.8)
+    # Board.setBusServoPulse(1, servo1 - 50, 300)
+    print(original_to_urdf((0, 20, 8)), original_to_urdf((0, 20, 5)))
     Board.setBusServoPulse(2, 500, 500)
-    AK.setPitchRangeMoving((0, 10, 10), -30, -30, -90, 1500)
+    AK.servosMove((500, 500, 500, 500) , None)
     sleep(4)
+    # Board.setBusServoPulse(1, servo1 - 50, 300)
+    # Board.setBusServoPulse(2, 500, 500)
+    # AK.setPitchRangeMoving((0, 10, 10), -30, -30, -90, 1500) 
+    # sleep(4)
+    # AK.setPitchRangeMoving((0, 20, 5), 0, -15, 15)
+    # sleep(4)
     # Disables all servos
     AK.reset_servos()

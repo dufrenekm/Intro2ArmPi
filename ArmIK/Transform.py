@@ -2,7 +2,7 @@
 # encoding:utf-8
 import cv2
 import sys
-sys.path.append('/home/pi/ArmPi/')
+sys.path.append('/home/roosh/Intro2ArmPi/')
 import math
 import numpy as np
 from CameraCalibration.CalibrationConfig import *
@@ -33,6 +33,20 @@ def convertCoordinate(x, y, size):
     y_ = round(y * map_param_ + image_center_distance, 2)
 
     return x_, y_
+
+def original_to_urdf(coordinates: tuple):
+    x, y, z = coordinates
+    x_ = (0.01 * y) - 0.05
+    y_ = (-0.01 * x) - 0.0
+    z_ = (0.01 * z) + 0.05
+    return x_, y_, z_
+
+def urdf_to_original(coordinates: tuple):
+    x, y, z = coordinates
+    x_ = -100 * (y + 0.03)
+    y_ = 100 * (x + 0.03)
+    z_ = 100 * (z - 0.085)
+    return x_, y_, z_
 
 #将现实世界的长度转换为图像像素长度
 #传入坐标及图像分辨率，例如(10, (640, 320))

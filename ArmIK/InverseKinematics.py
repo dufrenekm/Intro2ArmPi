@@ -2,8 +2,24 @@
 # encoding: utf-8
 # 4自由度机械臂逆运动学：给定相应的坐标（X,Y,Z），以及俯仰角，计算出每个关节转动的角度
 # 2020/07/20 Aiden
+import sys
+sys.path.append('/home/roosh/Intro2ArmPi/')
 import logging
 from math import *
+import time
+def time_function(func):
+    """
+    Function decorator used to measure running time.
+    """
+    def wrapper(*args, **kwargs):
+        start = time.time()
+        output = func(*args, **kwargs)
+        end = time.time()
+        
+        print(f"{func.__name__} took {end-start} sec to run.")
+        
+        return output
+    return wrapper
 
 # CRITICAL, ERROR, WARNING, INFO, DEBUG
 logging.basicConfig(level=logging.ERROR)
@@ -48,6 +64,7 @@ class IK:
         else:
             return {"L1":self.l1, "L2":self.l2, "L3":self.l3, "L4":self.l4}
 
+    @time_function
     def getRotationAngle(self, coordinate_data, Alpha):
         # 给定指定坐标和俯仰角，返回每个关节应该旋转的角度，如果无解返回False
         # coordinate_data为夹持器末端坐标，坐标单位cm， 以元组形式传入，例如(0, 5, 10)
